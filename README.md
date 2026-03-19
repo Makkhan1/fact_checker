@@ -13,6 +13,7 @@ Ensure you have Python 3.9+ installed. You will need API keys for:
 Open your terminal and install the required Python libraries:
 ```bash
 pip install fastapi uvicorn python-multipart groq tavily-python python-dotenv
+```
 
 3. Setup Environment Variables
 Create a file named .env in the same directory as main.py and add your keys:
@@ -23,7 +24,10 @@ TAVILY_API_KEY=your_tavily_api_key_here
 4. Run the Application
 Execute the single script from your terminal:
 
+```
 python main.py
+
+```
 
 Navigate to http://localhost:8000 in your web browser.
 
