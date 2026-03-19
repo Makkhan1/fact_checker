@@ -26,7 +26,6 @@ Execute the single script from your terminal:
 
 ```
 python main.py
-
 ```
 
 Navigate to http://localhost:8000 in your web browser.
