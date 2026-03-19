@@ -13,3 +13,27 @@ Ensure you have Python 3.9+ installed. You will need API keys for:
 Open your terminal and install the required Python libraries:
 ```bash
 pip install fastapi uvicorn python-multipart groq tavily-python python-dotenv
+
+3. Setup Environment Variables
+Create a file named .env in the same directory as main.py and add your keys:
+
+GROQ_API_KEY=your_groq_api_key_here
+TAVILY_API_KEY=your_tavily_api_key_here
+
+4. Run the Application
+Execute the single script from your terminal:
+
+python main.py
+
+Navigate to http://localhost:8000 in your web browser.
+
+The beautiful split-screen UI is served directly from the script—no extra frontend servers required!
+
+🧠 Architecture
+Frontend: Served via FastAPI HTMLResponse (Tailwind CSS, Lucide Icons, Vanilla JS).
+
+Vision Pass: Uses meta-llama/llama-4-scout-17b-16e-instruct to extract OCR and hunt for visual artifacts in uploaded images.
+
+Context Retrieval: Uses Tavily Search API to find live news sources.
+
+Reasoning Pass: Uses llama-3.3-70b-versatile to ingest the vision data and web context, returning a structured JSON verdict and Trust Score.
