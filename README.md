@@ -1,4 +1,4 @@
-# 👁️ The Visionary: Single-Script AI Fact-Checker
+# 👁️ The Visionary
 
 The Visionary is a hybrid, multimodal fact-checking agent built entirely into a **single Python file**. It uses Groq's high-speed LPU infrastructure and Tavily's search API to cross-reference images and text claims against real-world data instantly.
 
