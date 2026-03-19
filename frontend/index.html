@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Visionary | AI Fact Checker</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    animation: {
+                        'scan': 'scan 2s linear infinite',
+                    },
+                    keyframes: {
+                        scan: {
+                            '0%': { transform: 'translateY(-100%)' },
+                            '100%': { transform: 'translateY(100%)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar for scrollable panels */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<!-- 
+  min-h-screen for mobile scrolling fallback
+  lg:h-screen lg:overflow-hidden to lock scrolling on desktop and enable split-screen
+-->
+<body class="bg-slate-50 min-h-screen lg:h-screen lg:overflow-hidden font-sans text-slate-800 antialiased selection:bg-indigo-100 selection:text-indigo-900 flex flex-col">
+
+    <!-- Decorative background elements -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-100/50 blur-3xl"></div>
+        <div class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-100/40 blur-3xl"></div>
+    </div>
+
+    <main class="w-full max-w-[100rem] mx-auto h-full p-4 sm:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 lg:gap-8 relative z-10 flex-1 min-h-0">
+        
+        <!-- ==========================================
+             LEFT COLUMN: Input & Configuration
+             ========================================== -->
+        <div class="w-full lg:w-[45%] xl:w-[40%] h-full flex flex-col min-h-0">
+            
+            <!-- Dashboard Header -->
+            <header class="mb-6 flex flex-col items-start shrink-0">
+                <div class="flex items-center gap-4 mb-2">
+                    <div class="bg-white p-2.5 rounded-xl shadow-sm border border-slate-100">
+                        <i data-lucide="shield-check" class="w-8 h-8 text-indigo-600"></i>
+                    </div>
+                    <h1 class="text-3xl font-extrabold tracking-tight">
+                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">The Visionary</span>
+                    </h1>
+                </div>
+                <p class="text-slate-500 font-medium">Hybrid Multimodal Fact-Checking Agent</p>
+            </header>
+
+            <!-- Input Form -->
+            <div class="bg-white p-6 sm:p-8 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100 flex-1 flex flex-col min-h-0">
+                <form id="analyzeForm" class="flex flex-col h-full gap-6">
+                    
+                    <!-- Text Input -->
+                    <div class="shrink-0 space-y-3">
+                        <label class="flex items-center text-sm font-semibold text-slate-700">
+                            <i data-lucide="message-square" class="w-4 h-4 mr-2 text-slate-400"></i>
+                            What claim do you want to verify?
+                        </label>
+                        <textarea id="textClaim" rows="4" 
+                            class="custom-scrollbar w-full p-4 bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all resize-none text-slate-700 placeholder:text-slate-400" 
+                            placeholder="e.g., 'The Eiffel Tower was sold for scrap metal in 2024...'"></textarea>
+                    </div>
+
+                    <!-- Image Upload Dropzone (Stretches to fill remaining space) -->
+                    <div class="flex-1 flex flex-col space-y-3 min-h-[200px]">
+                        <label class="flex items-center text-sm font-semibold text-slate-700 shrink-0">
+                            <i data-lucide="image" class="w-4 h-4 mr-2 text-slate-400"></i>
+                            Upload Evidence (Optional)
+                        </label>
+                        
+                        <div class="relative group flex-1 w-full rounded-xl overflow-hidden">
+                            <input type="file" id="imageFile" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="updateFileName(this)"/>
+                            <div id="dropzoneUI" class="absolute inset-0 border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl flex flex-col items-center justify-center p-6 text-center group-hover:border-indigo-400 group-hover:bg-indigo-50/50 transition-colors">
+                                <i data-lucide="upload-cloud" class="w-10 h-10 text-slate-400 group-hover:text-indigo-500 mb-4 transition-colors"></i>
+                                <p class="text-sm text-slate-600 font-medium mb-1">Click to upload or drag and drop</p>
+                                <p class="text-xs text-slate-400">Supports JPG, PNG for visual forensic analysis</p>
+                                
+                                <!-- File Name Display (Hidden by default) -->
+                                <div id="fileDisplay" class="hidden mt-4 inline-flex items-center px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm">
+                                    <i data-lucide="file-image" class="w-4 h-4 text-indigo-500 mr-2 shrink-0"></i>
+                                    <span id="fileNameText" class="text-sm text-slate-700 font-medium truncate max-w-[180px]">filename.jpg</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="shrink-0 w-full relative group overflow-hidden bg-slate-900 text-white font-semibold py-4 px-6 rounded-xl transition-all hover:shadow-lg active:scale-[0.98]">
+                        <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <span class="relative flex items-center justify-center">
+                            <i data-lucide="search" class="w-5 h-5 mr-2"></i>
+                            Run Forensic Analysis
+                        </span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ==========================================
+             RIGHT COLUMN: Results & Output
+             ========================================== -->
+        <div class="w-full lg:w-[55%] xl:w-[60%] h-full flex flex-col relative min-h-[500px] lg:min-h-0">
+            
+            <!-- 1. Initial Empty State -->
+            <div id="initialState" class="flex-1 flex flex-col items-center justify-center bg-white/40 border-2 border-slate-200 border-dashed rounded-[2rem] text-center p-8">
+                <div class="bg-white p-4 rounded-full shadow-sm mb-4">
+                    <i data-lucide="microscope" class="w-10 h-10 text-indigo-300"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-700 mb-2">Ready for Analysis</h3>
+                <p class="text-slate-500 max-w-sm">Enter a claim or upload an image on the left to begin the multimodal forensic fact-check.</p>
+            </div>
+
+            <!-- 2. Loading State -->
+            <div id="loading" class="hidden flex-1 flex-col items-center justify-center bg-white/60 backdrop-blur-sm border-2 border-slate-100 rounded-[2rem] text-center p-8">
+                <div class="relative w-24 h-24 mx-auto mb-6">
+                    <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
+                    <div class="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent animate-spin"></div>
+                    <i data-lucide="cpu" class="absolute inset-0 m-auto w-10 h-10 text-indigo-600 animate-pulse"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 mb-2">Analyzing Data...</h3>
+                <p class="text-sm text-slate-500 max-w-xs mx-auto">Running OCR, checking visual anomalies, and cross-referencing global web sources.</p>
+            </div>
+
+            <!-- 3. Results Panel -->
+            <div id="resultsPanel" class="hidden flex-1 flex flex-col bg-white rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-slate-100 overflow-hidden min-h-0">
+                
+                <!-- Dynamic Header (Fixed at top of results) -->
+                <div id="verdictHeader" class="shrink-0 p-6 sm:p-8 text-white relative overflow-hidden transition-colors duration-500">
+                    <div class="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div class="text-center sm:text-left">
+                            <span class="text-white/80 text-sm font-semibold uppercase tracking-wider mb-1 block">Final Verdict</span>
+                            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight capitalize flex items-center justify-center sm:justify-start" id="verdictText">
+                                <!-- Injected by JS -->
+                            </h2>
+                        </div>
+                        <div class="bg-white/20 backdrop-blur-md px-6 py-4 rounded-2xl text-center border border-white/10 shrink-0">
+                            <span class="text-white/80 text-xs font-bold uppercase tracking-wider block mb-1">Trust Score</span>
+                            <div class="text-3xl font-black tabular-nums leading-none">
+                                <span id="trustScore">0</span><span class="text-xl text-white/60">/100</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scrollable Body for Results -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-6 sm:p-8 space-y-8 bg-white">
+                    
+                    <!-- Explanation -->
+                    <div>
+                        <h3 class="flex items-center text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                            <i data-lucide="align-left" class="w-4 h-4 mr-2"></i> Agent Explanation
+                        </h3>
+                        <div class="bg-slate-50 border-l-4 border-slate-200 p-5 rounded-r-xl">
+                            <p id="explanationText" class="text-slate-700 leading-relaxed font-medium"></p>
+                        </div>
+                    </div>
+
+                    <div class="grid sm:grid-cols-2 gap-8 border-t border-slate-100 pt-8">
+                        <!-- Anomalies -->
+                        <div>
+                            <h3 class="flex items-center text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                                <i data-lucide="scan" class="w-4 h-4 mr-2"></i> Visual Forensics
+                            </h3>
+                            <div id="anomaliesContainer" class="flex items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
+                                <div id="anomaliesIcon" class="w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0">
+                                    <!-- Injected by JS -->
+                                </div>
+                                <div>
+                                    <span id="anomaliesBadge" class="font-semibold text-sm block">None Detected</span>
+                                    <p class="text-xs text-slate-500 mt-0.5" id="anomaliesSubtext">Image passes visual inspection.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sources -->
+                        <div>
+                            <h3 class="flex items-center text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">
+                                <i data-lucide="link" class="w-4 h-4 mr-2"></i> Web Evidence
+                            </h3>
+                            <ul id="sourcesList" class="space-y-2">
+                                <!-- Injected via JS -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // Handle file input UI updates
+        function updateFileName(input) {
+            const fileDisplay = document.getElementById('fileDisplay');
+            const fileNameText = document.getElementById('fileNameText');
+            
+            if (input.files && input.files[0]) {
+                fileNameText.textContent = input.files[0].name;
+                fileDisplay.classList.remove('hidden');
+            } else {
+                fileDisplay.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('analyzeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const textClaim = document.getElementById('textClaim').value;
+            const imageFile = document.getElementById('imageFile').files[0];
+            
+            if (!textClaim && !imageFile) {
+                alert("Please provide a text claim or an image evidence to analyze.");
+                return;
+            }
+
+            // UI State updates: Hide intro and results, show loading
+            document.getElementById('initialState').classList.add('hidden');
+            document.getElementById('resultsPanel').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').classList.add('flex');
+
+            const formData = new FormData();
+            if (textClaim) formData.append('text_claim', textClaim);
+            if (imageFile) formData.append('image', imageFile);
+
+            try {
+                // Ensure your Python FastAPI server is running on port 8000
+                const response = await fetch('http://localhost:8000/api/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert("Backend Error: " + data.error);
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('loading').classList.remove('flex');
+                    document.getElementById('initialState').classList.remove('hidden');
+                    return;
+                }
+
+                // Populate Text Data
+                document.getElementById('verdictText').innerHTML = `${data.verdict}`;
+                document.getElementById('trustScore').textContent = data.truth_rating;
+                document.getElementById('explanationText').textContent = data.explanation;
+
+                // Color code the Header based on Verdict
+                const header = document.getElementById('verdictHeader');
+                header.className = 'shrink-0 p-6 sm:p-8 text-white relative overflow-hidden transition-colors duration-500'; // Reset
+                
+                const verdictLower = (data.verdict || "").toLowerCase();
+                if (verdictLower.includes('true')) {
+                    header.classList.add('bg-emerald-500'); 
+                } else if (verdictLower.includes('false')) {
+                    header.classList.add('bg-rose-500'); 
+                } else {
+                    header.classList.add('bg-amber-500'); 
+                }
+
+                // Handle Anomalies Badge
+                const anomaliesBadge = document.getElementById('anomaliesBadge');
+                const anomaliesIcon = document.getElementById('anomaliesIcon');
+                const anomaliesSubtext = document.getElementById('anomaliesSubtext');
+
+                if (data.visual_anomalies_detected) {
+                    anomaliesBadge.textContent = "Anomalies Found";
+                    anomaliesBadge.className = "font-semibold text-sm text-rose-700 block";
+                    anomaliesIcon.className = "w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 bg-rose-100 text-rose-600";
+                    anomaliesIcon.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4"></i>';
+                    anomaliesSubtext.textContent = "AI generation or manipulation markers detected.";
+                } else {
+                    anomaliesBadge.textContent = "Passes Inspection";
+                    anomaliesBadge.className = "font-semibold text-sm text-emerald-700 block";
+                    anomaliesIcon.className = "w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 bg-emerald-100 text-emerald-600";
+                    anomaliesIcon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i>';
+                    anomaliesSubtext.textContent = "No obvious manipulation detected.";
+                }
+
+                // Populate Sources
+                const sourcesList = document.getElementById('sourcesList');
+                sourcesList.innerHTML = '';
+                if (data.key_sources && data.key_sources.length > 0) {
+                    data.key_sources.forEach(url => {
+                        const li = document.createElement('li');
+                        try {
+                            const domain = new URL(url).hostname.replace('www.', '');
+                            li.innerHTML = `
+                                <a href="${url}" target="_blank" class="flex items-center p-2 rounded-lg hover:bg-slate-50 group border border-transparent hover:border-slate-100 transition-colors">
+                                    <div class="w-6 h-6 rounded bg-indigo-100 text-indigo-600 flex items-center justify-center mr-3 shrink-0 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                        <i data-lucide="globe" class="w-3 h-3"></i>
+                                    </div>
+                                    <span class="text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors truncate">${domain}</span>
+                                    <i data-lucide="external-link" class="w-3 h-3 ml-auto text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                </a>`;
+                        } catch(err) {
+                            li.innerHTML = `<a href="${url}" target="_blank" class="text-sm text-indigo-600 hover:underline truncate block">${url}</a>`;
+                        }
+                        sourcesList.appendChild(li);
+                    });
+                } else {
+                    sourcesList.innerHTML = `
+                        <div class="flex items-center p-3 rounded-lg bg-slate-50 border border-slate-100">
+                            <i data-lucide="search-x" class="w-5 h-5 text-slate-400 mr-2"></i>
+                            <span class="text-sm text-slate-500">No verifiable sources found.</span>
+                        </div>`;
+                }
+
+                // Re-initialize dynamic icons injected into DOM
+                lucide.createIcons();
+
+                // Swap visibility
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+                document.getElementById('resultsPanel').classList.remove('hidden');
+                document.getElementById('resultsPanel').classList.add('flex');
+
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                alert("A network error occurred. Please ensure your Python backend is running.");
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('loading').classList.remove('flex');
+                document.getElementById('initialState').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
