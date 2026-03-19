@@ -35,7 +35,7 @@ Navigate to:
 http://localhost:8000 in your web browser.
 ```
 
-The beautiful split-screen UI is served directly from the script—no extra frontend servers required!
+The beautiful split-screen UI.
 
 🧠 Architecture
 Frontend: Served via FastAPI HTMLResponse (Tailwind CSS, Lucide Icons, Vanilla JS).
