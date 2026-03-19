@@ -26,7 +26,7 @@ agent = VisionaryAgent()
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Simple health check route
-@app.get("/")
+@app.get("/health")
 async def health_check():
     return {"status": "online", "message": "The Visionary API is running. Send POST requests to /api/analyze"}
 
