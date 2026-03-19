@@ -18,8 +18,10 @@ pip install fastapi uvicorn python-multipart groq tavily-python python-dotenv
 3. Setup Environment Variables
 Create a file named .env in the same directory as main.py and add your keys:
 
+```
 GROQ_API_KEY=your_groq_api_key_here
 TAVILY_API_KEY=your_tavily_api_key_here
+```
 
 4. Run the Application
 Execute the single script from your terminal:
