@@ -58,14 +58,17 @@ class VisionaryAgent:
         return response.choices[0].message.content
 
     def _tavily_research_pass(self, query: str) -> list:
-        """Phase 3: Fetches real-world context using Tavily News API."""
-        print(f"[*] Executing Tavily Search for: '{query}'")
+        """Phase 3: Fetches deep real-world context across all topics."""
+        print(f"[*] Executing Deep Tavily Search for: '{query}'")
         try:
-            # We use 'advanced' depth and focus on news/general verification
             search_result = self.tavily_client.search(
                 query=query, 
-                search_depth="advanced", 
-                max_results=5
+                search_depth="advanced",
+                topic="general", # <--- Changed to include all topics
+                max_results=10, 
+                include_raw_content=True, # Fetches the full article text
+                # Exclude social media to avoid circular misinformation
+                exclude_domains=["reddit.com", "twitter.com", "x.com", "tiktok.com"] 
             )
             return search_result.get("results", [])
         except Exception as e:
